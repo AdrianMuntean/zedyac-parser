@@ -45,7 +45,9 @@ class ZedyacParser {
 
     rl.on('line', (line) => {
       if (!this.header) {
-        this.header = this.splitLine(line);
+        const splittedLine = this.splitLine(line);
+        this.header = splittedLine;
+        this._fullHeader = splittedLine;
       } else {
         data.push(this.parseLine(line));
       }
@@ -75,7 +77,7 @@ class ZedyacParser {
   parseLine(line) {
     const data = {};
     const splits = this.splitLine(line);
-    this.header.forEach((value, index) => {
+    this._fullHeader.forEach((value, index) => {
       if (this.ignoredFields[value]) {
         return;
       }

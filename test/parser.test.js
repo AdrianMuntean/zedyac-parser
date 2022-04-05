@@ -66,27 +66,27 @@ describe('Parser', () => {
   });
 
   it('should correctly ignore fields if configured', async () => {
-    const parser = new ZedyacParser({ ignoreFields: ['email', 'phoneNumber'] });
+    const parser = new ZedyacParser({ ignoreFields: ['firstName', 'email'] });
     await parser.parse(filePath);
 
-    const expectedCsvOutput = 'firstName,lastName\n'
-      + 'John,Doe\n'
-      + 'Jane,Doe\n'
-      + 'James,Bond';
+    const expectedCsvOutput = 'lastName,phoneNumber\n'
+      + 'Doe,0123456789\n'
+      + 'Doe,9876543210\n'
+      + 'Bond,0612345678';
 
-    expect(parser.header).to.eql(['firstName', 'lastName']);
+    expect(parser.header).to.eql(['lastName', 'phoneNumber']);
     expect(parser.dataObject).to.eql([
       {
-        firstName: 'John',
         lastName: 'Doe',
+        phoneNumber: '0123456789',
       },
       {
-        firstName: 'Jane',
         lastName: 'Doe',
+        phoneNumber: '9876543210',
       },
       {
-        firstName: 'James',
         lastName: 'Bond',
+        phoneNumber: '0612345678',
       },
     ]);
     expect(parser.dataToCsv()).to.eq(expectedCsvOutput);
