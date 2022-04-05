@@ -25,6 +25,7 @@ const expectedObjectOutput = [
   },
 ];
 const header = ['firstName', 'lastName', 'email', 'phoneNumber'];
+const filePath = 'files/users.csv';
 
 describe('Parser', () => {
   it('should throw an error if incorrect file path', async () => {
@@ -37,7 +38,7 @@ describe('Parser', () => {
 
   it('should correctly parse the CSV file', async () => {
     const parser = new ZedyacParser();
-    await parser.parse('files/users.csv');
+    await parser.parse(filePath);
 
     const expectedCsvOutput = 'firstName,lastName,email,phoneNumber\n'
       + 'John,Doe,john@doe.com,0123456789\n'
@@ -62,5 +63,32 @@ describe('Parser', () => {
 
     expect(parser.dataObject).to.eql(expectedObjectOutput);
     expect(parser.header).to.eql(header);
+  });
+
+  it('should correctly ignore fields if configured', async () => {
+    const parser = new ZedyacParser({ ignoreFields: ['email', 'phoneNumber'] });
+    await parser.parse(filePath);
+
+    const expectedCsvOutput = 'firstName,lastName\n'
+      + 'John,Doe\n'
+      + 'Jane,Doe\n'
+      + 'James,Bond';
+
+    expect(parser.header).to.eql(['firstName', 'lastName']);
+    expect(parser.dataObject).to.eql([
+      {
+        firstName: 'John',
+        lastName: 'Doe',
+      },
+      {
+        firstName: 'Jane',
+        lastName: 'Doe',
+      },
+      {
+        firstName: 'James',
+        lastName: 'Bond',
+      },
+    ]);
+    expect(parser.dataToCsv()).to.eq(expectedCsvOutput);
   });
 });

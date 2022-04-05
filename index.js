@@ -7,7 +7,11 @@ const DEFAULT_SEPARATOR = ',';
 
 class ZedyacParser {
   constructor(options) {
-    this.options = options;
+    this.options = options || {};
+    this.ignoredFields = {};
+    (this.options.ignoreFields || []).forEach((field) => {
+      this.ignoredFields[field] = true;
+    });
   }
 
   static validateFilePath(csvFilePath) {
@@ -64,13 +68,17 @@ class ZedyacParser {
   }
 
   set header(header) {
-    this._header = header;
+    const filteredHeader = header.filter((value) => !this.ignoredFields[value]);
+    this._header = filteredHeader;
   }
 
   parseLine(line) {
     const data = {};
     const splits = this.splitLine(line);
     this.header.forEach((value, index) => {
+      if (this.ignoredFields[value]) {
+        return;
+      }
       data[value] = splits[index];
     });
 
@@ -78,11 +86,11 @@ class ZedyacParser {
   }
 
   splitLine(line) {
-    return line.split((this.options || {}).separator || DEFAULT_SEPARATOR);
+    return line.split(this.options.separator || DEFAULT_SEPARATOR);
   }
 
   joinLine(data) {
-    return data.join((this.options || {}).separator || DEFAULT_SEPARATOR);
+    return data.join(this.options.separator || DEFAULT_SEPARATOR);
   }
 
   dataToCsv() {
