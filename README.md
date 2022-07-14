@@ -1,5 +1,8 @@
 # zedyac-parser
 
+![Dependencies](https://img.shields.io/static/v1?label=dependencies&message=0&color=green)
+![NodeJs](https://img.shields.io/badge/NodeJS-blue)
+
 📓 `ZE`ro `D`ependency `Y`et `A`nother `C`sv `PARSER`. It's a pretty descriptive name if you ask me 🤓.
 
 There are a lot of good CSV parsers out there, this one is just a simpler implementation with async behaviour and no external dependencies.
