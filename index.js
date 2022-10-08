@@ -4,6 +4,7 @@ const readline = require('readline');
 const events = require('events');
 
 const DEFAULT_SEPARATOR = ',';
+const escapeChars = ['"', `'`, '/', `\\`];
 
 class ZedyacParser {
   constructor(options) {
@@ -12,6 +13,7 @@ class ZedyacParser {
     (this.options.ignoreFields || []).forEach((field) => {
       this.ignoredFields[field] = true;
     });
+    this.options.separator = this.options.separator ?? DEFAULT_SEPARATOR;
   }
 
   static validateFilePath(csvFilePath) {
@@ -45,7 +47,7 @@ class ZedyacParser {
 
     rl.on('line', (line) => {
       if (!this.header) {
-        const splittedLine = this.splitLine(line);
+        const splittedLine = this.simpleSplitLine(line);
         this.header = splittedLine;
         this._fullHeader = splittedLine;
       } else {
@@ -76,7 +78,14 @@ class ZedyacParser {
 
   parseLine(line) {
     const data = {};
-    const splits = this.splitLine(line);
+    let splits = this.simpleSplitLine(line);
+    if (splits.length !== this._fullHeader.length) {
+      splits = this.splitBasedOnCharacters(line);
+
+      if (splits.length !== this._fullHeader.length) {
+        throw new Error(`Failed to parse line ${line}. It should be of length ${this._fullHeader.length}, but was ${splits}`);
+      }
+    }
     this._fullHeader.forEach((value, index) => {
       if (this.ignoredFields[value]) {
         return;
@@ -87,12 +96,50 @@ class ZedyacParser {
     return data;
   }
 
-  splitLine(line) {
-    return line.split(this.options.separator || DEFAULT_SEPARATOR);
+  splitBasedOnCharacters(line) {
+    const lineSplits = [];
+    let currentEntity = '';
+    let currentSeparator = this.options.separator;
+    let specialSequenceInProgress = false;
+
+    for (const char of line) {
+      if (char === currentSeparator) {
+        lineSplits.push(currentEntity);
+        currentEntity = '';
+        continue;
+      }
+
+      const isEscapeChar = escapeChars.includes(char);
+
+      if (!isEscapeChar) {
+        currentEntity += char;
+        continue;
+      }
+
+      if (!specialSequenceInProgress) {
+        specialSequenceInProgress = true;
+        currentSeparator = char;
+      } else {
+        specialSequenceInProgress = false;
+        currentEntity = this.options.separator;
+      }
+    }
+
+    return lineSplits;
+  }
+
+  simpleSplitLine(line) {
+    return line.split(this.options.separator);
   }
 
   joinLine(data) {
-    return data.join(this.options.separator || DEFAULT_SEPARATOR);
+    const escapeChar = escapeChars.find(e => e !== this.options.separator);
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].indexOf(this.options.separator) > -1) {
+        data[i] = `${escapeChar}${data[i]}${escapeChar}`
+      }
+    }
+    return data.join(this.options.separator);
   }
 
   dataToCsv() {

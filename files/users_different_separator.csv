@@ -1,4 +1,4 @@
-firstName;lastName;email;phoneNumber
-John;Doe;john@doe.com;0123456789
-Jane;Doe;jane@doe.com;9876543210
-James;Bond;james.bond@mi6.co.uk;0612345678
+firstName;lastName;email;phoneNumber;address
+John;Doe;john@doe.com;0123456789;Main street, first to the left
+Jane;Doe;jane@doe.com;9876543210;Another address, with a comma, and another comma
+James;Bond;james.bond@mi6.co.uk;0612345678;
