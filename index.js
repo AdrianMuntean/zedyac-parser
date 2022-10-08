@@ -83,7 +83,7 @@ class ZedyacParser {
       splits = this.splitBasedOnCharacters(line);
 
       if (splits.length !== this._fullHeader.length) {
-        throw new Error(`Failed to parse line ${line}. It should be of length ${this._fullHeader.length}, but was ${splits}`);
+        throw new Error(`Failed to parse line ${line}. It should be of length ${this._fullHeader.length}, but was ${splits.length}`);
       }
     }
     this._fullHeader.forEach((value, index) => {
@@ -103,7 +103,7 @@ class ZedyacParser {
     let specialSequenceInProgress = false;
 
     for (const char of line) {
-      if (char === currentSeparator) {
+      if (char === currentSeparator && !specialSequenceInProgress) {
         lineSplits.push(currentEntity);
         currentEntity = '';
         continue;
@@ -121,8 +121,16 @@ class ZedyacParser {
         currentSeparator = char;
       } else {
         specialSequenceInProgress = false;
-        currentEntity = this.options.separator;
+        currentSeparator = this.options.separator;
       }
+    }
+
+    if (line.endsWith(this.options.separator)) {
+      lineSplits.push('');
+    }
+
+    if (currentEntity.length > 0) {
+      lineSplits.push(currentEntity);
     }
 
     return lineSplits;
